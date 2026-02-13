@@ -21,6 +21,7 @@ class GeneAnnotation:
             self._aspect = aspect
             self._evidence = evidence
             self._molecule = molecule
+            self._branch = self.branch_map.get(aspect, "Unknown")
 
             self._term: Term | None = None       #NEW slot for Term
 
@@ -148,4 +149,5 @@ class AnnotationCollection: # holds all annotations and provides query functions
         return [ann for ann in self._annotations if ann.evidence == evidence]
 
     def __repr__(self):
+
         return f"<AnnotationCollection: {len(self.annotations)} annotations>"
