@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 
-
+#helia
 class GeneAnalysisModule(ABC):
       def __init__(self,annotation_collection: AnnotationCollection,
                  term_collection: TermCollection,
@@ -141,9 +141,9 @@ class ProteinAnalyser(GeneAnalysisModule):
             return None
         return f'Protein {ann.gene} has function {ann.term.name}'
 
-#Both Metabolomics and Proteomics implement summary() differently → polymorphism
+#Both implement summary() differently → polymorphism
 
-
+#alessia
 class NumericalAnalysis(ABC):
     def __init__(self, ontology_df : OBOParser, annotation_df : GAFParser):
         self._ontology = ontology_df
@@ -165,7 +165,7 @@ class SummaryStatistics(NumericalAnalysis):
         onto_df = self._ontology.copy()
         onto_df["n_parents"] = onto_df["is a"].apply(len)
 
-        onto_df["n_children"] = onto_df["go_id"].apply(         #linked to Term collection
+        onto_df["n_children"] = onto_df["go_id"].apply(          #linked to Term collection
             lambda go_id: len(self.__term.get_children(go_id)))
 
         ann_df = self._annotations.copy()
@@ -173,28 +173,34 @@ class SummaryStatistics(NumericalAnalysis):
         experimental_codes = {"EXP","IDA","IPI","IMP","IGI","IEP"}
         ann_df["is_experimental"] = ann_df["evidence"].isin(experimental_codes)
 
+        onto_df["is_leaf"] = onto_df["go_id"].apply(
+            lambda go_id: len(self.__term.get_children(go_id)) == 0)  #terms with no childrem, Leaves represent the finest-grained functions a gene can be annotated to
+        leaf_count = onto_df["is_leaf"].sum()
+
         return {
             "namespace counts": onto_df["namespace"].value_counts(),
             "avg parents": onto_df["n_parents"].mean(),
             "avg children": onto_df["n_children"].mean(),
+            "leaf_percentage": str(leaf_count / len(onto_df) * 100) + "%",
             "evidence counts": ann_df["evidence"].value_counts(),
             "experimental vs computational": ann_df["is_experimental"].value_counts()
         }
 
-
     def plots(self):
         summary = self.compute
 
-        plt.figure()
-        summary["namespace counts"].plot(kind="bar", title="Namespace")
+        plt.figure() # Crea una pagina bianca nuova
+        summary["namespace counts"].plot(kind="bar", title="Namespace") #ma qua me lo divide per nomi o non me li scrive?
 
-        plt.figure()
+        plt.figure() # Crea un'altra pagina bianca nuova
         summary["evidence counts"].plot(kind="bar", title="Evidence")
 
-        plt.figure()
+        plt.figure() # Crea la terza pagina bianca
         summary["experimental vs computational"].plot(kind="bar", title="Exp vs Comp")
 
-        plt.show()
+        plt.show() # Mostra tutto
+
+
 
 
 '''principle: the more go_term 2 gene share the more they are related'''
@@ -233,6 +239,24 @@ class GeneSimilarityAnalysis(NumericalAnalysis):
         self.__sim = pd.DataFrame(sim, index=table.index, columns=table.index)  #it returns the matrix with labled col and rows(all genes)
         return self.__sim
 
-    def compare2genes(self, gene1, gene2): #this one used in gene.html
-
+    def compare2genes(self, gene1, gene2): #in compare_genes html
         return self.compute.at[gene1,gene2]
+
+class GeneSpecificityDistribution(NumericalAnalysis):   #the most ancestor it has the more specific
+    def __init__(self, ontology_df, annotation_df, analyser:GeneAnalyser):
+        super().__init__(ontology_df, annotation_df)
+        self.__analyser = analyser
+
+    def compute(self):
+        # Reuse the SINGLE-GENE method for every gene!
+        specificities = []
+        for gene in {ann.gene_name for ann in self._annotations}:   #ann.gene_name mi sa che devi cambiarlo perchè è un dataframe
+            spec = self.__analyser.gene_specificity(gene)
+            if spec is not None:
+                specificities.append(spec)
+
+        return {
+            "mean_specificity": np.mean(specificities),
+            "median_specificity": np.median(specificities),
+            "genes_analyzed": len(specificities)
+        }
