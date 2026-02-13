@@ -233,5 +233,6 @@ class GeneSimilarityAnalysis(NumericalAnalysis):
         self.__sim = pd.DataFrame(sim, index=table.index, columns=table.index)  #it returns the matrix with labled col and rows(all genes)
         return self.__sim
 
-    def compare2genes(self, gene1, gene2):
+    def compare2genes(self, gene1, gene2): #this one used in gene.html
+
         return self.compute.at[gene1,gene2]
