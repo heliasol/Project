@@ -54,75 +54,48 @@ similarity_analyser = GeneSimilarityAnalysis(obo_df, gaf_df)
 #routes
 @app.route("/")
 def home():
-    return render_template("index.html")
+    
 
 
 @app.route("/term", methods=["GET", "POST"])
 def term_page():
-    result = None
-
-    if request.method == "POST":
-        go_id = request.form["go_id"]
-        term = terms.get_term(go_id)
-
-        if term:
-            result = {
-                "id": term.go_id,
-                "name": term.name,
-                "namespace": term.namespace,
-                "definition": term.definition,
-                "parents": [p.go_id for p in term.parents],
-                "children": [c.go_id for c in term.children]
-            }
-
-    return render_template("term.html", result=result)
+    
 
 
 @app.route("/gene", methods=["GET", "POST"])
 def gene_page():
-    summaries = None
-    specificity = None
-    gene = None
+    
 
-    if request.method == "POST":
-        gene = request.form["gene_name"]
+@app.route("/analyse_terms", methods=["GET", "POST"])
+def analyse_terms():
+    result = None
 
-        anns = annotations.get_by_gene_name(gene)
+    if request.method =='POST': 
+        #runs the code only when the form is submitted
+        #if the user is just opening the page normally
+        #the code inside this block won't run
+        go1 = request.form["go1"]
+        go2 = request.form["go2"]
 
-        summaries = [
-            gene_analyser.summary(a)
-            for a in anns
-            if gene_analyser.summary(a)
-        ]
+        related = hierarchy.is_related(go1,go2)
+        ancestor = hierarchy.is_ancestor(go1, go2)
+        descendant = hierarchy.is_descendant(go1,go2)
+        msca = hierarchy.MSCA(go1,go2)
+        paths = hierarchy.pedigree_paths(go1,go2)
+        shortest_path=hierarchy.shortest_path(go1,go2)
+        longest_path = hierarchy.longest_path(go1,go2)
 
-        specificity = gene_analyser.gene_specificity(gene)
+        result = {
+            'go1': go1,
+            'go2' : go2,
+            'related' : related,
+            'ancestor' : ancestor,
+            "descendant": descendant,
+            "msca": msca,
+            'paths': paths,
+            "shortest_path": shortest_path,
+            'longest_path': longest_path
+            }
+        
+    return render_template ('compare_terms.html', result=result)
 
-    return render_template("gene.html",
-                           gene=gene,
-                           summaries=summaries,
-                           specificity=specificity)
-
-
-@app.route("/compare", methods=["GET", "POST"])
-def compare_page():
-    related = None
-    similarity_score = None
-    explanation = None
-
-    if request.method == "POST":
-        gene1 = request.form["gene1"]
-        gene2 = request.form["gene2"]
-
-        related = gene_analyser.genes_functionally_related(gene1, gene2)
-        explanation = gene_analyser.explain_gene_relationship(gene1, gene2)
-
-        similarity_score = similarity_analyser.compare2genes(gene1, gene2)
-
-    return render_template("compare.html",
-                           related=related,
-                           explanation=explanation,
-                           similarity=similarity_score)
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
