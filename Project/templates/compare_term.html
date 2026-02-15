@@ -1,1 +1,45 @@
+<html>
+  <head>
+    <title> Ontology Analyser  </title>
+  </head>
+  <body>
+    <h1>
+      <p> <img src=''> </p>
+      <p> Welcome To Ontology Analyser !</p>
+    </h1>
+    <p>
+      Analyse two GO ID terms:
+    </p>
 
+    <form method='POST'>
+        <label> GO ID 1: </label>
+      <input type='text' name='go1' placeholder= 'example: GO:0008150'>
+
+        <label> GO ID 2: </label>
+      <input type= 'text' name='go2' placeholder= 'example: GO:0008150'>
+      <button> type= 'submit'> Analyse </button>
+    </form>
+
+    {% if result %}
+        <h3> Results :</h3>
+
+        {% if result.related %}
+            <p> {{result.go1}} is ancestor of {{result.go2}}: {{result.ancestor}}</p>
+            <p> {{result.go2}} is descendant of {{result.go2}}: {{result.descendant}} </p>
+            
+            {% if result.paths %}
+                <p> List Of Ontology Paths: {{result.paths}} </p>
+                <p> Shortest Ontology Path: {{result.shortest_path}}</p>
+                <p> Longest Ontology Path: {{result.longest_path}}</p>
+            {% else %}
+                <p> No Path Found! </p>
+            {% endif %}
+        {% endif %}
+
+        {% if result.msca %}
+            <p> The Most Specific Common Ancestor is:{{ result.msca }}</p>
+        {% else %}
+            <p> No Common Ancestor Exist! </p>
+        {% endif % }
+  </body>
+</html>
