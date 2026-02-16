@@ -40,9 +40,6 @@ class GeneAnalyser(GeneAnalysisModule):
         )
     
     def _get_ann(self, gene: str) -> list[GeneAnnotation]: #it's private helper
-        """
-        Internal helper: return all annotations of a gene.
-        """
         return self._annotations.get_by_gene_name(gene)
 
     def is_gene_ancestor(self, gene1: str, gene2: str) -> bool:
@@ -292,5 +289,6 @@ class GeneSpecificityDistribution(NumericalAnalysis):   #the most ancestor it ha
             "median_specificity": np.median(specificities),
             "genes_analyzed": len(specificities)
         }
+
 
 
