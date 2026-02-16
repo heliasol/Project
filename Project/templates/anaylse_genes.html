@@ -1,14 +1,8 @@
 <html> 
 <head> <title>Gene Annotation Analyser </title></head>
 <body>
-    <h1> 
-    <p>Welcome to Gene Annotation Analyser!</p>
-    <p> <img src="" ></p>
-    </h1>
-
-    <p>
-      Analyse Two Genes:
-    </p>
+    <h1> Welcome to Gene Annotation Analyser!</h1>
+    <p>Analyse Two Genes:</p>
 
 <form method="POST">
     <input type="text" name="gene1" placeholder="example: NUDT4B">
@@ -18,25 +12,26 @@
 
 {% if result %}
     <h3>Results: </h3>
-    <p><b> {{result.explanation}} </b></p>
-    <p> <b> The Similarity Between Gene {{result.gene1}} And {{result.gene2}} is: {{result.similaity_score}}</b></p>
     
-    {% if result.related }
-        
-        <p><b> {{result.gene1}} is ancestor of {{result.gene2}} :</b> {{ result.ancestor }}</p>
-        <p><b> {{result.gene1}} descendant of {{result.gene2}}:</b> {{ result.descendant }}</p>
-
-        {% if result.paths %}
-            <p><b>Shortest Functional Path: {{result.shortest_path | join('→')}} </b></p>
-            <p><b>Longest Functional Path: {{result.longest_path | join(" → ") }}</b></p>
-        {% else %}
-            <p><b> No Functional Path found! </b></p>
-        {% endif %}
-
+    <p><b> {{result.explanation}} </b></p>
+    <p><b> The Similarity Score Between Gene {{ result.gene1 }} And {{ result.gene2 }} is: {{result.similarity_score}}</b></p>
+    
+    {% if result.ancestor %}
+        <p> {{ result.gene1 }} is functionally more general than {{result.gene2}} </p>
+    {% elif result.descendant %}
+        <p> {{ result.gene1 }} is functionally more specific than {{result.gene2}} </p>
+    {% elif result.msca %}
+        <p> {{ result.gene1 }} and {{ result.gene2 }} share a common ancestor: {{result.msca}} </p>
+    {% else %}
+        <p> The Two Genes are not functionally related </p>
     {% endif %}
-
-    <p><b>Explanation:</b></p>
-    <p>{{ result.explanation }}</p>
+    
+    {% if result.paths %}
+        <p><b>Shortest Functional Path: {{result.shortest_path | join('→')}} </b></p>
+        <p><b>Longest Functional Path: {{result.longest_path | join(" → ") }}</b></p>
+    {% else %}
+            <p><b> No Functional Path found! </b></p>
+    {% endif %}
 
 {% endif %}
 
