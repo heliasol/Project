@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 
 
-#helia
+
 class GeneAnalysisModule(ABC):
       def __init__(self,annotation_collection: AnnotationCollection,
                  term_collection: TermCollection,
@@ -44,6 +44,34 @@ class GeneAnalyser(GeneAnalysisModule):
         Internal helper: return all annotations of a gene.
         """
         return self._annotations.get_by_gene_name(gene)
+
+    def is_gene_ancestor(self, gene1: str, gene2: str) -> bool:
+      anns1 = self._get_ann(gene1)
+      anns2 = self._get_ann(gene2)
+
+      for a1 in anns1:
+          for a2 in anns2:
+              if a1.term is not None and a2.term is not None:
+                  if self._hierarchy.is_ancestor(
+                      a1.term.go_id,
+                      a2.term.go_id
+                  ):
+                      return True
+      return False
+
+    def is_gene_descendant(self, gene1: str, gene2: str) -> bool:
+      anns1 = self._get_ann(gene1)
+      anns2 = self._get_ann(gene2)
+
+      for a1 in anns1:
+          for a2 in anns2:
+              if a1.term is not None and a2.term is not None:
+                  if self._hierarchy.is_descendant(
+                      a1.term.go_id,
+                      a2.term.go_id
+                  ):
+                      return True
+      return False
     
     def gene_specificity(self, gene: str) -> float | None:
       anns = self._get_ann(gene)
@@ -143,9 +171,13 @@ class ProteinAnalyser(GeneAnalysisModule):
 
 #Both implement summary() differently → polymorphism
 
-#alessia
+import numpy as np
+import pandas as pd
+from abc import ABC, abstractmethod
+import matplotlib.pyplot as plt
+
 class NumericalAnalysis(ABC):
-    def __init__(self, ontology_df : OBOParser, annotation_df : GAFParser):
+    def __init__(self, ontology_df : pd.DataFrame, annotation_df : pd.DataFrame):
         self._ontology = ontology_df
         self._annotations = annotation_df
 
@@ -239,7 +271,7 @@ class GeneSimilarityAnalysis(NumericalAnalysis):
         self.__sim = pd.DataFrame(sim, index=table.index, columns=table.index)  #it returns the matrix with labled col and rows(all genes)
         return self.__sim
 
-    def compare2genes(self, gene1, gene2): #in compare_genes html
+    def compare2genes(self, gene1, gene2):
         return self.compute.at[gene1,gene2]
 
 class GeneSpecificityDistribution(NumericalAnalysis):   #the most ancestor it has the more specific
@@ -260,3 +292,5 @@ class GeneSpecificityDistribution(NumericalAnalysis):   #the most ancestor it ha
             "median_specificity": np.median(specificities),
             "genes_analyzed": len(specificities)
         }
+
+
