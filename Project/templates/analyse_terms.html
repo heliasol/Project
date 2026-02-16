@@ -3,43 +3,47 @@
     <title> Ontology Analyser  </title>
   </head>
   <body>
-    <h1>
-      <p> <img src=''> </p>
-      <p> Welcome To Ontology Analyser !</p>
-    </h1>
-    <p>
-      Analyse two GO ID terms:
-    </p>
+    <h1> Welcome To Ontology Analyser !</h1>
+    <p>Analyse two GO ID terms:</p>
 
     <form method='POST'>
-        <label> GO ID 1: </label>
+      <label> GO ID 1: </label>
       <input type='text' name='go1' placeholder= 'example: GO:0008150'>
-
-        <label> GO ID 2: </label>
+      <label> GO ID 2: </label>
       <input type= 'text' name='go2' placeholder= 'example: GO:0008150'>
-      <button> type= 'submit'> Analyse </button>
+      <button type="submit">Analyse</button>
     </form>
 
-    {% if result %}
-        <h3> Results :</h3>
+{% if result %}
+    <h3>Results:</h3>
+    
+        {% if result.ancestor %}
+              <p>{{ result.go1 }} is a Broader Concept (Ancestor) of {{ result.go2 }}.</p>
 
-        {% if result.related %}
-            <p> {{result.go1}} is ancestor of {{result.go2}}: {{result.ancestor}}</p>
-            <p> {{result.go2}} is descendant of {{result.go2}}: {{result.descendant}} </p>
-            
-            {% if result.paths %}
-                <p> List Of Ontology Paths: {{result.paths}} </p>
-                <p> Shortest Ontology Path: {{result.shortest_path}}</p>
-                <p> Longest Ontology Path: {{result.longest_path}}</p>
-            {% else %}
-                <p> No Path Found! </p>
-            {% endif %}
-        {% endif %}
+        {% elif result.descendant %}
+              <p>{{ result.go1 }} is a more Specific Concept (Descendant) of {{ result.go2 }}.</p>
 
-        {% if result.msca %}
-            <p> The Most Specific Common Ancestor is:{{ result.msca }}</p>
+        {% elif result.msca %}
+              <p>{{ result.go1 }} and {{ result.go2 }} share a Common Ancestor: {{ result.msca }}.</p>
         {% else %}
-            <p> No Common Ancestor Exist! </p>
-        {% endif % }
+              <p>The two GO terms are not structurally related in the ontology.</p>
+        {% endif %}
+            
+        {% if result.paths %}
+              <p><b>List Of Ontology Paths:</b></p>:
+              <ul>
+                {% for path in result.paths %}
+                  <li>{{ path | join(" → ") }}</li>
+                {% endfor %}
+              </ul>
+              
+    
+                <p> Shortest Ontology Path: {{result.shortest_path | join(" → ")}}</p>
+                <p> Longest Ontology Path: {{result.longest_path | join(" → ")}}</p>
+    
+        {% else %}
+                <p> No Path Found! </p>
+            
+        {% endif %}
   </body>
 </html>
