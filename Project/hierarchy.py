@@ -18,6 +18,7 @@ class OntologyHierarchy:
         return self._hierarchy
 
     def is_descendant(self, child_id: str, parent_id: str) -> bool:
+        #parent is a more general biological concept than child.
         descendants = self._ontology.get_descendants(parent_id)
         descendant_ids : set[str] = {t.go_id for t in descendants}
         return child_id in descendant_ids
@@ -103,5 +104,6 @@ class OntologyHierarchy:
                 text += parent + '-->' + 'no children' + '\n'
             else:
                 text += parent + '-->' + str(self._hierarchy[parent]) +'\n'
+
 
         return text
