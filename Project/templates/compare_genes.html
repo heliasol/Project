@@ -1,1 +1,44 @@
+<html> 
+<head> <title>Gene Annotation Analyser </title></head>
+<body>
+    <h1> 
+    <p>Welcome to Gene Annotation Analyser!</p>
+    <p> <img src="" ></p>
+    </h1>
 
+    <p>
+      Analyse Two Genes:
+    </p>
+
+<form method="POST">
+    <input type="text" name="gene1" placeholder="example: NUDT4B">
+    <input type="text" name="gene2" placeholder="example: IGKV2D-24">
+    <button type="submit"> Analyse </button>
+</form>
+
+{% if result %}
+    <h3>Results: </h3>
+    <p><b> {{result.explanation}} </b></p>
+    <p> <b> The Similarity Between Gene {{result.gene1}} And {{result.gene2}} is: {{result.similaity_score}}</b></p>
+    
+    {% if result.related }
+        
+        <p><b> {{result.gene1}} is ancestor of {{result.gene2}} :</b> {{ result.ancestor }}</p>
+        <p><b> {{result.gene1}} descendant of {{result.gene2}}:</b> {{ result.descendant }}</p>
+
+        {% if result.paths %}
+            <p><b>Shortest Functional Path: {{result.shortest_path | join('→')}} </b></p>
+            <p><b>Longest Functional Path: {{result.longest_path | join(" → ") }}</b></p>
+        {% else %}
+            <p><b> No Functional Path found! </b></p>
+        {% endif %}
+
+    {% endif %}
+
+    <p><b>Explanation:</b></p>
+    <p>{{ result.explanation }}</p>
+
+{% endif %}
+
+</body>
+</html>
