@@ -101,7 +101,22 @@ class GeneAnalyser(GeneAnalysisModule):
                     return True
         return False
 
+    def msca(self, gene1: str, gene2: str) -> str | None:
+          anns1 = self._get_ann(gene1)
+          anns2 = self._get_ann(gene2)
 
+          for a1 in anns1:
+              for a2 in anns2:
+                  if a1.term is None or a2.term is None:
+                      continue
+
+                  msca = self._hierarchy.MSCA(a1.term.go_id, a2.term.go_id)
+
+                  if msca:
+                      return msca   # return the first common ancestor found
+
+          return None
+ 
 
     def gene_pedigree(self, gene1, gene2):
         anns1 = self._get_ann(gene1)
@@ -289,6 +304,7 @@ class GeneSpecificityDistribution(NumericalAnalysis):   #the most ancestor it ha
             "median_specificity": np.median(specificities),
             "genes_analyzed": len(specificities)
         }
+
 
 
 
