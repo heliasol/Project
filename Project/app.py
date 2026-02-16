@@ -97,5 +97,37 @@ def analyse_terms():
             'longest_path': longest_path
             }
         
-    return render_template ('compare_terms.html', result=result)
+    return render_template ('Analyse_terms.html', result=result)
+
+@app.route('/analyse_genes', methods= ['GET', 'POST'])
+def analyse_genes():
+    result= None
+    if request.method == "POST":
+        gene1 = request.form["gene1"]
+        gene2 = request.form["gene2"]
+
+        related = gene_analyser.genes_functionally_related(gene1, gene2)
+        similarity_score= similarity_analyser.compare2genes(gene1,gene2)
+        ancestor = gene_analyser.is_gene_ancestor(gene1, gene2)
+        descendant = gene_analyser.is_gene_descendant(gene1, gene2)
+        paths = gene_analyser.gene_paths(gene1,gene2)
+        shortest_path = gene_analyser.shortest_gene_path(gene1, gene2)
+        longest_path = gene_analyser.longest_gene_path(gene1, gene2)
+        explanation = gene_analyser.explain_gene_relationship(gene1, gene2)
+
+        result = {
+            "gene1": gene1,
+            "gene2": gene2,
+            "related": related,
+            'similarity_score': similarity_score,
+            "ancestor": ancestor,
+            "descendant": descendant,
+            "path": paths,
+            "shortest_path": shortest_path,
+            'longest_path': longest_path,
+            "explanation": explanation
+        }
+
+    return render_template("analyse_genes.html", result=result)
+
 
