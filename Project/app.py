@@ -35,6 +35,7 @@ for _, row in gaf_df.iterrows():
         gene_id=row["gene_id"],
         gene_name=row["gene_name"],
         go_id=row["go_id"],
+        qualifier=row["qualifier"],  
         aspect=row["aspect"],
         evidence=row["evidence"],
         molecule=row["molecule"]
@@ -78,13 +79,42 @@ def home():
     
 
 
-@app.route("/term", methods=["GET", "POST"])
+@app.route("/term")
 def term_page():
+    go_id = request.args.get("go_id")
+
+    term = None
+    genes_for_term = []
+
+    if go_id:
+        term = terms.get_term(go_id)   # <-- fixed here
+        if term:
+            genes_for_term = annotations.get_by_term(go_id)
+
+    return render_template(
+        "term.html",
+        go_id=go_id,
+        term=term,
+        genes_for_term=genes_for_term
+    )
     
 
 
-@app.route("/gene", methods=["GET", "POST"])
+@app.route("/gene")
 def gene_page():
+    gene_name = request.args.get("gene_name")
+
+    gene_annotations = []
+    if gene_name:
+        gene_annotations = annotations.get_by_gene_name(gene_name)
+        print(f"Searching for gene: {gene_name}, found {len(gene_annotations)} annotations")
+
+    return render_template(
+        "gene.html",
+        gene_name=gene_name,
+        annotations=gene_annotations
+    )
+
     
 
 @app.route("/analyse_terms", methods=["GET", "POST"])
@@ -155,5 +185,6 @@ def analyse_genes():
 def statistics():
     return render_template('statistics.html', **template_data)
     
+
 
 
