@@ -1,39 +1,141 @@
-<html> 
-<head> <title>Gene Annotation Analyser </title></head>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gene Annotation Analyser</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: cornsilk;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+        }
+
+        .form-box {
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #f0e68c;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background-color: indianred;
+            color: white;
+            border: 2px solid #b22222;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #cd5c5c;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .results {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-top: 30px;
+        }
+
+        .results h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
 <body>
-    <h1> Welcome to Gene Annotation Analyser!</h1>
-    <p>Analyse Two Genes:</p>
 
-<form method="POST">
-    <input type="text" name="gene1" placeholder="example: NUDT4B">
-    <input type="text" name="gene2" placeholder="example: IGKV2D-24">
-    <button type="submit"> Analyse </button>
-</form>
+    <h1>Gene Annotation Analyser</h1>
 
-{% if result %}
-    <h3>Results: </h3>
-    
-    <p><b> {{result.explanation}} </b></p>
-    <p><b> The Similarity Score Between Gene {{ result.gene1 }} And {{ result.gene2 }} is: {{result.similarity_score}}</b></p>
-    
-    {% if result.ancestor %}
-        <p> {{ result.gene1 }} is functionally more general than {{result.gene2}} </p>
-    {% elif result.descendant %}
-        <p> {{ result.gene1 }} is functionally more specific than {{result.gene2}} </p>
-    {% elif result.msca %}
-        <p> {{ result.gene1 }} and {{ result.gene2 }} share a common ancestor: {{result.msca}} </p>
-    {% else %}
-        <p> The Two Genes are not functionally related </p>
+    <div class="intro">
+        <p><strong>Analyse Two Genes</strong></p>
+        <p>Enter two gene symbols to compare their functional similarity, shared ancestors, and ontology paths.</p>
+    </div>
+
+    <div class="form-box">
+        <form method="POST">
+            <label>Gene 1:</label>
+            <input type="text" name="gene1" placeholder="example: NUDT4B" required>
+
+            <label>Gene 2:</label>
+            <input type="text" name="gene2" placeholder="example: IGKV2D-24" required>
+
+            <button type="submit">Analyse</button>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+
+        <p><strong>{{ result.explanation }}</strong></p>
+
+        <p><strong>Similarity Score between {{ result.gene1 }} and {{ result.gene2 }}:</strong> {{ result.similarity_score }}</p>
+
+        {% if result.ancestor %}
+            <p><strong>{{ result.gene1 }}</strong> is functionally more general than <strong>{{ result.gene2 }}</strong>.</p>
+        {% elif result.descendant %}
+            <p><strong>{{ result.gene1 }}</strong> is functionally more specific than <strong>{{ result.gene2 }}</strong>.</p>
+        {% elif result.msca %}
+            <p>They share a common ancestor: <strong>{{ result.msca }}</strong></p>
+        {% else %}
+            <p>The two genes are not functionally related.</p>
+        {% endif %}
+
+        {% if result.paths %}
+            <p><strong>Shortest Functional Path:</strong> {{ result.shortest_path | join(" → ") }}</p>
+            <p><strong>Longest Functional Path:</strong> {{ result.longest_path | join(" → ") }}</p>
+        {% else %}
+            <p><strong>No functional path found.</strong></p>
+        {% endif %}
+    </div>
     {% endif %}
-    
-    {% if result.paths %}
-        <p><b>Shortest Functional Path: {{result.shortest_path | join('→')}} </b></p>
-        <p><b>Longest Functional Path: {{result.longest_path | join(" → ") }}</b></p>
-    {% else %}
-            <p><b> No Functional Path found! </b></p>
-    {% endif %}
-
-{% endif %}
 
 </body>
 </html>
