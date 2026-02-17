@@ -1,0 +1,158 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Simple Gene page</title>
+<style>
+    /* General body styles */
+    body {
+        font-family: 'Trebuchet MS', Tahoma, sans-serif;
+        background-color: #fafafa;
+        margin: 0;
+        padding: 0;
+        color: #222;
+    }
+
+    /* Page container simulation */
+    h1, h2, p, form, table {
+        width: 90%;
+        max-width: 750px;
+        margin: 20px auto;
+    }
+
+    h1 {
+        margin-top: 30px;
+        color: #111;
+    }
+
+    h2 {
+        margin-top: 30px;
+        color: #111;
+    }
+
+    p {
+        line-height: 1.5;
+        margin-bottom: 12px;
+    }
+
+    /* Form styling */
+    form {
+        background-color: #fff;
+        padding: 15px 20px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+
+    label {
+        display: inline-block;
+        margin-right: 10px;
+        font-weight: bold;
+    }
+
+    input[type="text"] {
+        padding: 6px 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 200px;
+        margin-right: 10px;
+    }
+
+    button {
+        padding: 6px 12px;
+        border: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Table styling */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+        background-color: #fff;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px 12px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+        background-color: #fafafa;
+    }
+
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+</style>
+</head>
+<body>
+    <h1>Gene Ontology Gene Annotation Summary</h1>
+    <p>Browse Gene Ontology annotations for a single gene symbol or ID.<p>
+
+    <!-- minimal GET form -->
+    <form method="get" action="/gene">
+        <label for="gene_name">Gene name:</label>
+        <input type="text" id="gene_name" name="gene_name" value="{{ gene_name or '' }}" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if gene_name and not annotations %}
+        <p>No annotations found for gene "{{ gene_name }}".</p>
+    {% endif %}
+
+    {% if annotations %}
+        <h2>Annotations for {{ gene_name }}</h2>
+        <p>Each row represents one GO annotation for this gene, with its term, evidence, and ontology branch.<p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>GO Term ID</th>
+                    <th>GO Term Name</th>
+                    <th>Relation / Qualifier</th>
+                    <th>Evidence Code</th>
+                    <th>Gene Product Type</th>
+                    <th>GO Aspect (BP/MF/CC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ann in annotations %}
+                    <tr>
+                        <td><a href="/term?go_id={{ ann.go_id }}">{{ ann.go_id }}</td>
+                        <td>{% if ann.term %}{{ ann.term.name }}{% else %}-{% endif %}</td>
+                        <td>{% if ann.qualifier %}{{ ann.qualifier }}{% else %}-{% endif %}</td>
+                        <td>{% if ann.evidence %}{{ ann.evidence }}{% else %}-{% endif %}</td>
+                        <td>{{ ann.molecule }}</td>
+                        <td>{{ ann.branch }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    <p>*Evidence codes (e.g. IDA, IEA, IMP) indicate how the gene–term association was inferred.</p>
+    <p>GO Aspect: Biological Process, Molecular Function, or Cellular Component.<p>
+    <p>Tip: Click a GO Term ID to open the full term page, or use the search box to look up another gene.<p>
+</body>
+</html>
