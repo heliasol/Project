@@ -51,9 +51,30 @@ hierarchy.build_tree()
 gene_analyser = GeneAnalyser (annotations, terms, hierarchy)
 similarity_analyser = GeneSimilarityAnalysis(obo_df, gaf_df)
 
+data = load_data()
+
+template_data = {
+    "total_terms": len(data["ontology_df"]),   #li prende da data, calc con miei metodi
+    "leaf_perc": data["summary"]["leaf_percentage"],
+    "avg_parents": data["summary"]["avg parents"],
+    "avg_children": data["summary"]["avg children"],
+    "exp_ratio": str((data['summary']['experimental vs computational'].get(True,0) / data['summary']['experimental vs computational'].sum() * 100)%),
+    "mean_spec": data["specificity"]["mean_specificity"],
+    "median_spec": data["specificity"]["median_specificity"],
+    "genes_count": data["specificity"]["genes_analyzed"],
+    "ns_bp": data["summary"]["namespace counts"].get("biological_process", 0),
+    "ns_mf": data["summary"]["namespace counts"].get("molecular_function", 0),
+    "ns_cc": data["summary"]["namespace counts"].get("cellular_component", 0),
+    "ev_labels": data["summary"]["evidence counts"].index.tolist(),
+    "ev_values": data["summary"]["evidence counts"].values.tolist(),
+    "exp_count": data["summary"]["experimental vs computational"].get(True, 0),
+    "comp_count": data["summary"]["experimental vs computational"].get(False, 0)
+}
+
 #routes
-@app.route("/")
+@app.route('/')
 def home():
+    return render_template('home.html')
     
 
 
@@ -129,5 +150,10 @@ def analyse_genes():
         }
 
     return render_template("analyse_genes.html", result=result)
+
+@app.route('/statistics')
+def statistics():
+    return render_template('statistics.html', **template_data)
+    
 
 
