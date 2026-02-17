@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>GO Term Page</title>
+    <style>
+        body {
+            font-family: 'Trebuchet MS', Tahoma, sans-serif;
+            background-color: #fafafa;
+            margin: 0;
+            padding: 0;
+            color: #222;
+        }
+        input[type="text"] {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+            margin-right: 10px;
+         }
+
+    button {
+        padding: 6px 12px;
+        border: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #0056b3;
+    }
+
+        .container {
+            width: 90%;
+            max-width: 750px;
+            margin: 40px auto;
+            padding: 25px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
+
+        h1, h2, h3 {
+            color: #111;
+            margin-top: 0;
+        }
+
+        p, li {
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        ul {
+            padding-left: 18px;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f4f4f4;
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+        a {
+           color: #007bff;
+           text-decoration: none;
+          }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gene Ontology Term Details</h1>
+        <p>View GO term definition, hierarchy, and associated gene annotations.<p>
+
+        <!-- minimal GET form -->
+        <form method="get" action="/term">
+            <label for="go_id">GO term ID:</label>
+            <input type="text" id="go_id" name="go_id" value="{{ go_id or '' }}" required>
+            <button type="submit">Search</button>
+        </form>
+
+        {% if not go_id %}
+            <p>Enter the GO Term ID.</p>
+        {% endif %}
+
+        {% if go_id and not term %}
+            <p>No term found for GO ID: "{{ go_id }}".</p>
+        {% endif %}
+
+        {% if term %}
+            <h2>Term details</h2>
+            <p><strong>GO Term ID:</strong> {{ term.go_id }}</p>
+            <p><strong>Term name:</strong> {{ term.name }}</p>
+            <p><strong>Ontology aspect:</strong> {{ term.namespace }}</p>
+            <p><strong>Description:</strong> {{ term.definition }}</p>
+
+            <h3>Parent terms</h3>
+            <p>Immediate ancestors of this GO term in the ontology hierarchy.</p>
+            <p style="margin-bottom: 1em;"></p>
+            {% if term.parents %}
+                <ul>
+                    {% for p in term.parents %}
+                        <li><a href="/term?go_id={{ p.go_id }}">{{ p.go_id }}</a> – {{ p.name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No parents (root term).</p>
+            {% endif %}
+
+            <h3>Child terms</h3>
+            <p>More specific GO terms directly below this term.<p>
+            {% if term.children %}
+                <ul>
+                    {% for c in term.children %}
+                        <li><a href="/term?go_id={{ c.go_id }}">{{ c.go_id }}</a> – {{ c.name }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No children (leaf term).</p>
+            {% endif %}
+
+            <h3>Annotated genes</h3>
+            <p>Genes annotated to this GO term in the selected annotation dataset (evidence code in brackets).<p>
+            {% if genes_for_term %}
+                <ul>
+                    {% for ann in genes_for_term %}
+                        <li><a href="/gene?gene_name={{ ann.gene_name }}">{{ ann.gene_name }}</a>({{ ann.evidence }})</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No genes associated with this term.</p>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>
