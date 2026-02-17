@@ -1,49 +1,145 @@
+<!DOCTYPE html>
 <html>
-  <head>
+<head>
     <title> Ontology Analyser  </title>
-  </head>
-  <body>
-    <h1> Welcome To Ontology Analyser !</h1>
-    <p>Analyse two GO ID terms:</p>
+    <style> 
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 700px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: cornsilk;
+        color: #333;
+        }
+      
+    h1 {
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 2.2em;
+      color: #2c3e50;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+      }
 
-    <form method='POST'>
-      <label> GO ID 1: </label>
-      <input type='text' name='go1' placeholder= 'example: GO:0008150'>
-      <label> GO ID 2: </label>
-      <input type= 'text' name='go2' placeholder= 'example: GO:0008150'>
-      <button type="submit">Analyse</button>
-    </form>
+    .intro{
+      text-align: center;
+      margin-bottom: 40px;
+      line-height: 1.6;
+      background-color: #fff8dc;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #f0e68c;
+      }    
 
-{% if result %}
-    <h3>Results:</h3>
+    .form-box {
+      background-color: #fff8dc;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #f0e68c;
+      margin-bottom: 30px;
+    }
     
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+      }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background-color: indianred;
+      color: white;
+      border: 2px solid #b22222;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    button:hover {
+      background-color: #cd5c5c;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .results {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      margin-top: 30px;
+        }
+
+    .results h3 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+        }
+    </style>
+</head>
+  <body>
+    <h1>Welcome To Ontology Analyser !</h1>
+
+    <div class="intro">
+        <p><strong>Analyse and Compare Two GO Terms</strong></p>
+        <p>Enter two Gene Ontology IDs to analyse their relationship, paths, and common ancestors.</p>
+    </div>
+
+    <div class="form-box">
+        <form method="POST">
+            <label>GO ID 1:</label>
+            <input type="text" name="go1" placeholder="example: GO:0008150" required>
+
+            <label>GO ID 2:</label>
+            <input type="text" name="go2" placeholder="example: GO:0003674" required>
+
+            <button type="submit">Analyse</button>
+        </form>
+    </div>
+
+
+    {% if result %}
+    <div class="results">
+
+        <h3> Results :</h3>
+
         {% if result.ancestor %}
-              <p>{{ result.go1 }} is a Broader Concept (Ancestor) of {{ result.go2 }}.</p>
+            <p><strong> {{ result.go1 }} is a Broader Concept (Ancestor) of {{ result.go2 }}.</strong></p>
 
         {% elif result.descendant %}
-              <p>{{ result.go1 }} is a more Specific Concept (Descendant) of {{ result.go2 }}.</p>
-
+            <p><strong> {{ result.go1 }} is a more Specific Concept (Descendant) of {{ result.go2 }}.</strong></p>
+        
         {% elif result.msca %}
-              <p>{{ result.go1 }} and {{ result.go2 }} share a Common Ancestor: {{ result.msca }}.</p>
+            <p><strong>{{ result.go1 }} and {{ result.go2 }} share a Common Ancestor: {{ result.msca }}.</strong></p>
+
         {% else %}
-              <p>The two GO terms are not structurally related in the ontology.</p>
+              <p>The two GO Terms Are Not Structurally Related in the Ontology.</p>
         {% endif %}
-            
+
         {% if result.paths %}
-              <p><b>List Of Ontology Paths:</b></p>:
+        <p><b>List Of Ontology Paths:</b></p>:
               <ul>
                 {% for path in result.paths %}
                   <li>{{ path | join(" → ") }}</li>
                 {% endfor %}
               </ul>
-              
-    
-                <p> Shortest Ontology Path: {{result.shortest_path | join(" → ")}}</p>
-                <p> Longest Ontology Path: {{result.longest_path | join(" → ")}}</p>
+                
+                <p><strong>Shortest Ontology Path: {{result.shortest_path | join(" → ")}}</strong></p>
+                <p><strong> Longest Ontology Path: {{result.longest_path | join(" → ")}}</strong></p>
     
         {% else %}
                 <p> No Path Found! </p>
             
         {% endif %}
+    </div>
+    {% endif %}
   </body>
 </html>
