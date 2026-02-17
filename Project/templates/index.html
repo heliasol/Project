@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GO Ontology Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: cornsilk;  /* ← Changed to cornsilk */
+            color: #333;  /* Dark text for better readability */
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+            color: #2c3e50;  /* Dark blue for title */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .intro {
+            text-align: center;
+            margin-bottom: 50px;
+            line-height: 1.6;
+            background-color: #fff8dc;  /* Light cornsilk shade */
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;  /* Khaki border */
+        }
+        .links {
+            display: grid;
+            gap: 15px;
+        }
+        .link-box {
+            background-color: indianred;  /* ← Changed to indianred */
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: white;  /* White text on indianred */
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid #b22222;  /* Darker border */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .link-box:hover {
+            background-color: #cd5c5c;  /* Lighter indianred on hover */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        .link-box:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <h1>GO Ontology Analysis</h1>
+
+    <div class="intro">
+        <p><strong>Welcome to the Gene Ontology Statistics Dashboard</strong></p>
+        <p>This application provides comprehensive analysis of GO annotations, including statistical summaries, gene comparisons, term comparisons, and search functionality.</p>
+        <p>Explore the different sections below to analyze the data.</p>
+    </div>
+
+    <div class="links">
+        <a href="/statistics" class="link-box">
+            Statistics Dashboard
+        </a>
+        <a href="/compare-genes" class="link-box">
+            Compare Genes
+        </a>
+        <a href="/compare-terms" class="link-box">
+            Compare Terms
+        </a>
+        <a href="/gene-search" class="link-box">
+            Gene Search
+        </a>
+        <a href="/term-search" class="link-box">
+            Term Search
+        </a>
+    </div>
+</body>
+</html>
