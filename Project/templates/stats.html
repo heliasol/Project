@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GO Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial; max-width: 850px; margin: 20px auto; }
+        .stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0; }
+        .stat-box { background: #f0f0f9; padding: 10px; border-radius: 5px; min-width: 110px; text-align: center; }
+        .stat-value { font-weight: bold; font-size: 18px; color: #1a3a8f; }
+        canvas { margin: 15px 0; }
+        #nsChart { height: 180px !important; }
+        #evChart { height: 450px !important; }
+        #expChart { height: 180px !important; }
+    </style>
+</head>
+<body>
+<h2 style="text-align:center">GO Ontology Statistics</h2>
+
+<div class="stats">
+    <div class="stat-box">Total Terms<br><span class="stat-value">{{ total_terms }}</span></div>
+    <div class="stat-box">Leaf %<br><span class="stat-value">{{ leaf_perc }}</span></div>
+    <div class="stat-box">Avg Parents<br><span class="stat-value">{{ "%.1f"|format(avg_parents) }}</span></div>
+    <div class="stat-box">Avg Children<br><span class="stat-value">{{ "%.1f"|format(avg_children) }}</span></div>
+    <div class="stat-box">Experimental<br><span class="stat-value">{{ exp_ratio }}</span></div>
+    <div class="stat-box">Mean Spec.<br><span class="stat-value">{{ "%.2f"|format(mean_spec) }}</span></div>
+    <div class="stat-box">Median Spec.<br><span class="stat-value">{{ "%.2f"|format(median_spec) }}</span></div>
+    <div class="stat-box">Genes Analyzed<br><span class="stat-value">{{ genes_count }}</span></div>
+</div>
+
+<h3>Namespace</h3>
+<canvas id="nsChart"></canvas>
+
+<h3>Evidence Codes (All)</h3>
+<canvas id="evChart"></canvas>
+
+<h3>Experimental vs Computational</h3>
+<canvas id="expChart"></canvas>
+
+<script>
+// Namespace Chart
+new Chart(document.getElementById('nsChart'), {
+    type: 'bar',
+     {
+        labels: ['Biological Process', 'Molecular Function', 'Cellular Component'],
+        datasets: [{
+            label: 'Terms',
+             [{{ ns_bp }}, {{ ns_mf }}, {{ ns_cc }}],
+            backgroundColor: ['#4285f4','#34a853','#ea4335']
+        }]
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+});
+
+// Evidence Chart
+new Chart(document.getElementById('evChart'), {
+    type: 'bar',
+     {
+        labels: {{ ev_labels | tojson }},
+        datasets: [{
+            label: 'Count',
+             {{ ev_values | tojson }},
+            backgroundColor: '#fbbc05'
+        }]
+    },
+    options: {
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+    }
+});
+
+// Experimental vs Computational
+new Chart(document.getElementById('expChart'), {
+    type: 'pie',
+     {
+        labels: ['Experimental', 'Computational'],
+        datasets: [{
+             [{{ exp_count }}, {{ comp_count }}],
+            backgroundColor: ['#34a853','#fbbc05']
+        }]
+    },
+    options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+});
+</script>
+</body>
+</html>
 
