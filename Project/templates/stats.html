@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GO Statistics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: cornsilk;
+            color: #333;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #8b0000;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #d32f2f;
+            padding-bottom: 10px;
+            font-size: 1.8em;
+        }
+        
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 25px 0;
+        }
+        
+        .stat-box {
+            background: white;
+            border: 2px solid indianred;
+            padding: 12px;
+            border-radius: 6px;
+            min-width: 110px;
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-box h3 {
+            margin: 0 0 5px 0;
+            font-size: 0.9em;
+            color: #555;
+            font-weight: normal;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            font-size: 18px;
+            color: #8b0000;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 15px;
+            background: white;
+            border: 2px solid indianred;
+            border-radius: 6px;
+        }
+        
+        h3 {
+            color: #8b0000;
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+        
+        canvas {
+            margin: 15px 0;
+        }
+        
+        #nsChart { height: 180px !important; }
+        #evChart { height: 450px !important; }
+        #expChart { height: 180px !important; }
+        
+        .similarity-section {
+            margin-top: 40px;
+            padding: 25px;
+            background: white;
+            border: 2px solid indianred;
+            border-radius: 8px;
+        }
+        
+        .warning-box {
+            margin: 15px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #8b0000;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #fff5f5;
+        }
+        
+        .back-home {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .back-home a {
+            color: #8b0000;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        form {
+            margin: 15px 0;
+            padding: 15px;
+            background: #fff5f5;
+            border-radius: 6px;
+            border: 1px solid #ffcdd2;
+        }
+        
+        input {
+            padding: 6px 10px;
+            border: 2px solid #d32f2f;
+            border-radius: 4px;
+            width: 80px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: indianred;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="back-home">
+        <a href="/">Back to Home</a>
+    </div>
+    
+    <h2>Statistical Overview</h2>
+    
+    <!-- ===== KPI BOXES ===== -->
+    <div class="stats">
+        <div class="stat-box">
+            <h3>Total Terms</h3>
+            <div class="stat-value">{{ total_terms }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>Leaf %</h3>
+            <div class="stat-value">{{ leaf_perc }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>Avg Parents</h3>
+            <div class="stat-value">{{ "%.1f"|format(avg_parents) }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>Avg Children</h3>
+            <div class="stat-value">{{ "%.1f"|format(avg_children) }}</div>
+        </div>
+        <div class="stat-box">
+            <h3>Experimental</h3>
+            <div class="stat-value">{{ exp_ratio }}</div>
+        </div>
+    </div>
+    
+    <!-- ===== GRAPHS ===== -->
+    <div class="chart-container">
+        <h3>Namespace Distribution</h3>
+        <canvas id="nsChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h3>Evidence Codes (All)</h3>
+        <canvas id="evChart"></canvas>
+    </div>
+    
+    <div class="chart-container">
+        <h3>Experimental vs Computational</h3>
+        <canvas id="expChart"></canvas>
+    </div>
+    
+    <!-- ===== SIMILARITY SEARCH (SENZA JAVASCRIPT!) ===== -->
+    <div class="similarity-section">
+        <h3>Gene Similarity Search</h3>
+        <p style="margin: 10px 0; color: #5d4037;">
+            Find gene pairs with Jaccard similarity in your specified range.
+            Results are limited to 100 pairs for performance.
+        </p>
+        
+        <!-- FORM HTML SEMPLICE (niente JavaScript!) -->
+        <form method="GET" action="/statistics">
+            <label for="min">Min:</label>
+            <input type="number" id="min" name="min" min="0" max="1" step="0.1" 
+                   value="{{ search_min if search_min else '0.7' }}" required>
+            
+            <span style="margin: 0 10px;">&le; similarity &le;</span>
+            
+            <label for="max">Max:</label>
+            <input type="number" id="max" name="max" min="0" max="1" step="0.1" 
+                   value="{{ search_max if search_max else '1.0' }}" required>
+            
+            <button type="submit">Search</button>
+            {% if similarity_results %}
+                <a href="/statistics" style="margin-left: 10px; color: #8b0000;">Clear</a>
+            {% endif %}
+        </form>
+        
+        <!-- MESSAGGIO DI AVVISO (se presente) -->
+        {% if warning %}
+            <div class="warning-box">{{ warning }}</div>
+        {% endif %}
+        
+        <!-- RISULTATI (se presenti) -->
+        {% if similarity_results %}
+            <h4 style="margin-top: 20px;">Results ({{ similarity_results|length }} pairs):</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gene 1</th>
+                        <th>Gene 2</th>
+                        <th>Similarity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in similarity_results %}
+                        <tr>
+                            <td><strong>{{ item.gene1 }}</strong></td>
+                            <td><strong>{{ item.gene2 }}</strong></td>
+                            <td>{{ "%.3f"|format(item.similarity) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color: #795548; font-style: italic; margin-top: 15px;">
+                Enter a range above and click "Search" to see gene pairs.
+            </p>
+        {% endif %}
+    </div>
+    
+    <div class="back-home">
+        <a href="/">Back to Home</a>
+    </div>
+    
+    <!-- ===== CHARTS (Chart.js è ancora necessario per i grafici) ===== -->
+    <script>
+        new Chart(document.getElementById('nsChart'), {
+            type: 'bar',
+             {
+                labels: ['Biological Process', 'Molecular Function', 'Cellular Component'],
+                datasets: [{
+                    label: 'Terms',
+                     [{{ ns_bp }}, {{ ns_mf }}, {{ ns_cc }}],
+                    backgroundColor: ['#4285f4', '#34a853', '#ea4335']
+                }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+        
+        new Chart(document.getElementById('evChart'), {
+            type: 'bar',
+             {
+                labels: {{ ev_labels | tojson }},
+                datasets: [{
+                    label: 'Count',
+                     {{ ev_values | tojson }},
+                    backgroundColor: '#fbbc05'
+                }]
+            },
+            options: { 
+                maintainAspectRatio: false, 
+                indexAxis: 'y',
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+        
+        new Chart(document.getElementById('expChart'), {
+            type: 'pie',
+             {
+                labels: ['Experimental', 'Computational'],
+                datasets: [{
+                     [{{ exp_count }}, {{ comp_count }}],
+                    backgroundColor: ['#34a853', '#fbbc05']
+                }]
+            },
+            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+    </script>
+</body>
+</html>

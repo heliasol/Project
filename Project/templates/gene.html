@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Simple Gene page</title>
+<head>
+    <meta charset="utf-8">
+    <title>Simple Gene Page</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: cornsilk;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        h2, h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+        }
+
+        .section-box {
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+            margin-top: 30px;
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input[type="text"] {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 6px 12px;
+            border: none;
+            background-color: indianred;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid #b22222;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #cd5c5c;
+            transform: translateY(-2px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        a {
+            color: indianred;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            color: #cd5c5c;
+        }
+
+        .footnote {
+            margin-top: 25px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gene Ontology Gene Annotation Summary</h1>
+    <p>Browse Gene Ontology annotations for a single gene symbol.<p>
+
+    <!-- minimal GET form -->
+    <form method="get" action="/gene">
+        <label for="gene_name">Gene name:</label>
+        <input type="text" id="gene_name" name="gene_name" value="{{ gene_name or '' }}" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if gene_name and not annotations %}
+        <p>No annotations found for gene "{{ gene_name }}".</p>
+    {% endif %}
+
+    {% if annotations %}
+        <h2>Annotations for {{ gene_name }}</h2>
+        {% if gene_spec is not none %}
+            <p><strong>Specificity:</strong> {{ gene_spec|round(2) }}  – average number of ancestors across all GO terms annotated to this gene; 
+        measures how specific the gene’s annotations are 
+        (1–5 low specificity, 5–15 medium, 15+ highly specific).</p>
+        {% endif %}
+        <p>Each row represents one GO annotation for this gene, with its term, evidence, and ontology branch.<p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>GO Term ID</th>
+                    <th>GO Term Name</th>
+                    <th>Relation / Qualifier</th>
+                    <th>Evidence Code</th>
+                    <th>Gene Product Type</th>
+                    <th>GO Aspect (BP/MF/CC)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ann in annotations %}
+                    <tr>
+                        <td><a href="/term?go_id={{ ann.go_id }}">{{ ann.go_id }}</td>
+                        <td>{% if ann.term %}{{ ann.term.name }}{% else %}-{% endif %}</td>
+                        <td>{% if ann.qualifier %}{{ ann.qualifier }}{% else %}-{% endif %}</td>
+                        <td>{% if ann.evidence %}{{ ann.evidence }}{% else %}-{% endif %}</td>
+                        <td>{{ ann.molecule }}</td>
+                        <td>{{ ann.branch }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    <p>*Evidence codes (e.g. IDA, IEA, IMP) indicate how the gene–term association was inferred.</p>
+    <p>GO Aspect: Biological Process, Molecular Function, or Cellular Component.<p>
+    <p>Tip: Click a GO Term ID to open the full term page, or use the search box to look up another gene.<p>
+</body>
+</html>

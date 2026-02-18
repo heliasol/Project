@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gene Annotation Analyser</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: cornsilk;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+        }
+
+        .form-box {
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #f0e68c;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            border: 1px solid #f1f0ee;
+            font-size: 1em;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background-color: indianred;
+            color: white;
+            border: 2px solid #b22222;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #cd5c5c;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+
+        .results {
+            background-color: #f9f6ee;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-top: 30px;
+        }
+
+        .results h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Gene Annotation Analyser</h1>
+
+    <div class="intro">
+        <p><strong>Analyse Two Genes</strong></p>
+        <p>Enter two gene symbols to compare their functional similarity, shared ancestors, and ontology paths.</p>
+    </div>
+
+    <div class="form-box">
+        <form method="POST">
+            <label>Gene 1:</label>
+            <input type="text" name="gene1" placeholder="example: NUDT4B" required>
+
+            <label>Gene 2:</label>
+            <input type="text" name="gene2" placeholder="example: IGKV2D-24" required>
+
+            <button type="submit">Analyse</button>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        <p> Gene 1 <a href="/gene?gene_name={{ result.gene1 }}"> {{result.gene1}}</a></p>
+        <p> Gene 2 <a href="/gene?gene_name={{ result.gene2 }}"> {{result.gene2}}</a></p>
+
+        <p><strong>Similarity Score between {{ result.gene1 }} and {{ result.gene2 }}:</strong> for now nothing</p>
+      {% if result.related or result.msca %}
+        {% if result.ancestor %}
+            <p><strong>{{ result.gene1 }}</strong> (Ancestor) is functionally more general than <strong>{{ result.gene2 }} (Descendant)</strong>.</p>
+        {% elif result.descendant %}
+            <p><strong>{{ result.gene1 }}</strong> (Descendant) is functionally more specific than <strong>{{ result.gene2 }} (Ancestor)</strong>.</p>
+        {% else %}
+            <p><strong> They Don't Have Ancestor or Descendant Relationship </strong></p>
+        {% endif %}
+
+        {% if result.msca %}
+            <p><strong>They share a common ancestor: </strong> <a href="/term?go_id={{ result.msca }}">{{ result.msca }}</a></p>
+        {% else %}
+            <p>The Two Genes Do Not Share A Common Ancestor.</p>
+        {% endif %}
+
+      {% else %}
+            <p><strong> The two GO Terms Are Not Structurally Related in the Ontology </strong></p>
+      {% endif %}
+       
+
+        {% if result.paths %}
+            <p><b>List Of functional Paths:</b></p>
+              <ul>
+                {% for path in result.paths %}
+                  <li>{{ path | join(" → ") }}</li>
+                {% endfor %}
+              </ul>
+
+            <p><strong>Shortest Functional Path:</strong> </p>
+            <p>{{ result.shortest_path | join(" → ") }}</p>
+
+            <p><strong>Longest Functional Path:</strong> </p>
+            <p>{{ result.longest_path | join(" → ") }}</p>
+
+        {% elif result.altpaths %}
+              <p><b>List Of Ontology Paths:</b></p>
+              <ul>
+                {% for path in result.altpaths %}
+                  <li>{{ path | join(" → ") }}</li>
+                {% endfor %}
+              </ul>
+
+            <p><strong>Shortest Functional Path:</strong> </p>
+            <p>{{ result.altshortest_path | join(" → ") }}</p>
+
+            <p><strong>Longest Functional Path:</strong> </p>
+            <p>{{ result.altlongest_path | join(" → ") }}</p>
+
+
+        {% else %}
+            <p><strong>No functional path found.</strong></p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</body>
+</html>
