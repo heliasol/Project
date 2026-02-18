@@ -18,7 +18,6 @@ class OntologyHierarchy:
         return self._hierarchy
 
     def is_descendant(self, child_id: str, parent_id: str) -> bool:
-        #parent is a more general biological concept than child.
         descendants = self._ontology.get_descendants(parent_id)
         descendant_ids : set[str] = {t.go_id for t in descendants}
         return child_id in descendant_ids
@@ -33,68 +32,53 @@ class OntologyHierarchy:
                 self.is_descendant(go_id1,go_id2))
 
 
-    def pedigree_path(self, parent_id: str, child_id: str) -> list[str]:
-      #I want to find a path from parent id to child id
-      #output should look like parent id --> other ids if there --> child id (recursive)
+    def pedigree_paths (self, parent_id: str, child_id: str, visited=None) :
+        if visited is None:
+            visited = set()
 
-        path = []
+         # prevent cycles
+        if parent_id in visited:
+            return []
 
-        if parent_id == child_id:
-            return [parent_id]
-
-        for child in self._hierarchy.get(parent_id, set()):
-            p = self.pedigree_path(child, child_id)
-            if p != []:
-                return [parent_id] + p
-
-        return []
-
-
-    def pedigree_paths (self, parent_id: str, child_id: str) -> list[list[str]]:
-
-        paths: list[list[str]] = []
+        visited.add(parent_id)
 
         if parent_id == child_id:
             return [[parent_id]]
+        
+        paths=[]
 
         for child in self._hierarchy.get(parent_id, set()):
-            subpath = self.pedigree_paths(child, child_id)
-            if subpath:
-                for path in subpath:
-                    paths.append([parent_id] + path)
+            subpaths = self.pedigree_paths(child, child_id, visited.copy())
+            for sp in subpaths:
+                paths.append([parent_id] + sp)
         return paths
 
     def shortest_path(self, parent_id: str, child_id: str)  -> list[str] | None:
-      paths = self.pedigree_paths(parent_id, child_id)
-      if not paths:
-            return None
-
-      return min(paths, key=len) #key is a function that tells Python how to compare elements.
+        paths = self.pedigree_paths(parent_id, child_id)
+        return min(paths, key=len) if paths else None
+    #key is a function that tells Python how to compare elements.
 
 
     def longest_path(self, parent_id: str, child_id: str)  -> list[str] | None:
-      paths = self.pedigree_paths(parent_id, child_id)
-      if not paths:
+        paths = self.pedigree_paths(parent_id, child_id)
+        return max(paths, key=len) if paths else None
+
+
+    def MSCA(self, go_id1: str, go_id2: str) -> str | None: #Most Specific Common Ancestor
+        ancestors1 = self._ontology.get_ancestors(go_id1)
+        ancestors2 = self._ontology.get_ancestors(go_id2)
+        
+        common = ancestors1.intersection(ancestors2)
+
+        if not common:
             return None
-      return max(paths, key=len)
+        
+        def depth(term):
+            paths = self.pedigree_paths(term.go_id, go_id1)
+            return max(len(p) for p in paths) if paths else 0
 
-
-    def MSCA(self, go_id1: str, go_id2: str) -> str | None:
-      #Most Specific Common Ancestor
-      ancestors1 = self._ontology.get_ancestors(go_id1)
-      ancestors2 = self._ontology.get_ancestors(go_id2)
-
-      common = ancestors1.intersection(ancestors2)
-
-      if not common:
-        return None
-
-      def depth(term) -> int:
-        path = self.longest_path(term.go_id, go_id1)
-        return len(path) if path is not None else 0
-
-      return max(common, key=depth).go_id
-    
+        return max(common, key=depth).go_id
+      
 
     def __repr__(self):
         text =''
@@ -104,6 +88,5 @@ class OntologyHierarchy:
                 text += parent + '-->' + 'no children' + '\n'
             else:
                 text += parent + '-->' + str(self._hierarchy[parent]) +'\n'
-
 
         return text
