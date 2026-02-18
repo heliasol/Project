@@ -3,102 +3,107 @@ from parsers import OBOParser, GAFParser
 from ontology import Term, TermCollection
 from annotations import GeneAnnotation, AnnotationCollection
 from hierarchy import OntologyHierarchy
-from analysis import GeneAnalyser, GeneSimilarityAnalysis
+from analysis import *
 
+# initialize app
 app = Flask(__name__)
 
-#parse the files
-obo_df = OBOParser("go.obo").parse()
-gaf_df = GAFParser("goa_human.gaf").parse()
+def load_data():
+    # parse the files
+    print('parsing start')
+    obo_df = OBOParser("gene ontology.txt").parse()
+    gaf_df = GAFParser("gaf.txt").parse()
+    print('parsing done')
 
-#build ontology
-terms = TermCollection()
+    # build ontology
+    terms = TermCollection()
 
-for _, row in obo_df.iterrows():
-    term = Term(
-        go_id=row["go_id"],
-        name=row["name"],
-        namespace=row["namespace"],
-        is_a=row["parents"],
-        definition=row["definition"],
-        synonyms=row["synonyms"]
-    )
-    terms.add_term(term)
+    for _, row in obo_df.iterrows():
+        term = Term(
+            go_id=row["go_id"],
+            name=row["name"],
+            namespace=row["namespace"],
+            is_a=row["parents"],
+            definition=row["definition"],
+            synonyms=row["synonyms"]
+        )
+        terms.add_term(term)
 
-terms.build_vertical_relationship()
+    print('term relationship is being made')
+    terms.build_vertical_relationship()
+    print('term relationship made')
 
-#build annotations
-annotations = AnnotationCollection()
+    # build annotations
+    print('annotation starts')
+    annotations = AnnotationCollection()
 
-for _, row in gaf_df.iterrows():
-    ann = GeneAnnotation(
-        gene_id=row["gene_id"],
-        gene_name=row["gene_name"],
-        go_id=row["go_id"],
-        qualifier=row["qualifier"],  
-        aspect=row["aspect"],
-        evidence=row["evidence"],
-        molecule=row["molecule"]
-    )
-    annotations.add_annotation(ann)
+    for _, row in gaf_df.iterrows():
+        ann = GeneAnnotation(
+            gene_id=row["gene_id"],
+            gene_name=row["gene_name"],
+            go_id=row["go_id"],
+            aspect=row["aspect"],
+            evidence=row["evidence"],
+            molecule=row["molecule"]
+        )
+        annotations.add_annotation(ann)
 
-annotations.link_terms(terms)
+    print('annotation made')
 
-#build hierarchy
-hierarchy = OntologyHierarchy(terms)
-hierarchy.build_tree()
+    print('linking on process')
+    annotations.link_terms(terms)
+    print('links made')
 
-#build analysers
-gene_analyser = GeneAnalyser (annotations, terms, hierarchy)
-similarity_analyser = GeneSimilarityAnalysis(obo_df, gaf_df)
+    # build hierarchy
+    print('building hierarchy')
+    hierarchy = OntologyHierarchy(terms)
+    hierarchy.build_tree()
+    print('hierarchy tree done')
+
+    # build analysers
+    print('start analysing')
+    gene_analyser = GeneAnalyser(annotations, terms, hierarchy)
+    print('finish analysing')
+
+    #stat
+    print('start summary')
+    summary= SummaryStatistics(obo_df, gaf_df, terms)
+    print('finish summary')
+
+    #similarity analysis
+    print('similaity start')
+    similarity_analyser=GeneSimilarityAnalysis(obo_df,gaf_df)
+    print('similarity finish')
+
+    # return structured data
+    return {
+        "ontology_df": obo_df,
+        "annotation_df": gaf_df,
+        "term_collection": terms,
+        'annotations': annotations,
+        'hierarchy': hierarchy,
+        "gene_analyser": gene_analyser,
+        "summary": summary,
+        'similarity_analyser':similarity_analyser}
+    
+
 
 data = load_data()
+hierarchy=data['hierarchy']
+gene_analyser=data['gene_analyser']
+terms=data['term_collection']
+annotations=data['annotations']
+similarity_analyser = data['similarity_analyser']
+ontology_df= data['ontology_df']
+annotation_df= data ['annotation_df']
 
-template_data = {
-    "total_terms": len(data["ontology_df"]),   #li prende da data, calc con miei metodi
-    "leaf_perc": data["summary"]["leaf_percentage"],
-    "avg_parents": data["summary"]["avg parents"],
-    "avg_children": data["summary"]["avg children"],
-    "exp_ratio": str((data['summary']['experimental vs computational'].get(True,0) / data['summary']['experimental vs computational'].sum() * 100)%),
-    "mean_spec": data["specificity"]["mean_specificity"],
-    "median_spec": data["specificity"]["median_specificity"],
-    "genes_count": data["specificity"]["genes_analyzed"],
-    "ns_bp": data["summary"]["namespace counts"].get("biological_process", 0),
-    "ns_mf": data["summary"]["namespace counts"].get("molecular_function", 0),
-    "ns_cc": data["summary"]["namespace counts"].get("cellular_component", 0),
-    "ev_labels": data["summary"]["evidence counts"].index.tolist(),
-    "ev_values": data["summary"]["evidence counts"].values.tolist(),
-    "exp_count": data["summary"]["experimental vs computational"].get(True, 0),
-    "comp_count": data["summary"]["experimental vs computational"].get(False, 0)
-}
 
+
+    
 #routes
 @app.route('/')
 def home():
-    return render_template('home.html')
-    
-
-
-@app.route("/term")
-def term_page():
-    go_id = request.args.get("go_id")
-
-    term = None
-    genes_for_term = []
-
-    if go_id:
-        term = terms.get_term(go_id)   # <-- fixed here
-        if term:
-            genes_for_term = annotations.get_by_term(go_id)
-
-    return render_template(
-        "term.html",
-        go_id=go_id,
-        term=term,
-        genes_for_term=genes_for_term
-    )
-    
-
+    return render_template('index.html')
 
 @app.route("/gene")
 def gene_page():
@@ -115,6 +120,25 @@ def gene_page():
         annotations=gene_annotations
     )
 
+
+@app.route("/term")
+def term_page():
+    go_id = request.args.get("go_id")
+
+    term = None
+    genes_for_term = []
+
+    if go_id:
+        term = terms.get_term(go_id)  
+        if term:
+            genes_for_term = annotations.get_by_term(go_id)
+
+    return render_template(
+        "term.html",
+        go_id=go_id,
+        term=term,
+        genes_for_term=genes_for_term
+    )
     
 
 @app.route("/analyse_terms", methods=["GET", "POST"])
@@ -122,33 +146,30 @@ def analyse_terms():
     result = None
 
     if request.method =='POST': 
-        #runs the code only when the form is submitted
-        #if the user is just opening the page normally
-        #the code inside this block won't run
         go1 = request.form["go1"]
         go2 = request.form["go2"]
-
-        related = hierarchy.is_related(go1,go2)
-        ancestor = hierarchy.is_ancestor(go1, go2)
-        descendant = hierarchy.is_descendant(go1,go2)
-        msca = hierarchy.MSCA(go1,go2)
-        paths = hierarchy.pedigree_paths(go1,go2)
-        shortest_path=hierarchy.shortest_path(go1,go2)
-        longest_path = hierarchy.longest_path(go1,go2)
 
         result = {
             'go1': go1,
             'go2' : go2,
-            'related' : related,
-            'ancestor' : ancestor,
-            "descendant": descendant,
-            "msca": msca,
-            'paths': paths,
-            "shortest_path": shortest_path,
-            'longest_path': longest_path
+            'related': hierarchy.is_related(go1,go2),
+            'ancestor' : hierarchy.is_ancestor(go1, go2) ,
+            "descendant": hierarchy.is_descendant(go1,go2),
+            "msca": hierarchy.MSCA(go1,go2),
+            'paths': hierarchy.pedigree_paths(go1,go2),
+            'altpaths':hierarchy.pedigree_paths(go2,go1),
+            "shortest_path": hierarchy.shortest_path(go1,go2),
+            'altshortest_path': hierarchy.shortest_path(go2,go1),
+            'longest_path':hierarchy.longest_path(go1,go2),
+            'altlongest_path': hierarchy.longest_path(go2,go1)
             }
-        
-    return render_template ('Analyse_terms.html', result=result)
+
+ 
+    return render_template ('analyse_terms.html',
+                            result=result ,
+                            go1=result['go1'] if result else None,
+                            go2=result['go2'] if result else None)
+
 
 @app.route('/analyse_genes', methods= ['GET', 'POST'])
 def analyse_genes():
@@ -157,34 +178,28 @@ def analyse_genes():
         gene1 = request.form["gene1"]
         gene2 = request.form["gene2"]
 
-        related = gene_analyser.genes_functionally_related(gene1, gene2)
-        similarity_score= similarity_analyser.compare2genes(gene1,gene2)
-        ancestor = gene_analyser.is_gene_ancestor(gene1, gene2)
-        descendant = gene_analyser.is_gene_descendant(gene1, gene2)
-        paths = gene_analyser.gene_paths(gene1,gene2)
-        shortest_path = gene_analyser.shortest_gene_path(gene1, gene2)
-        longest_path = gene_analyser.longest_gene_path(gene1, gene2)
-        explanation = gene_analyser.explain_gene_relationship(gene1, gene2)
-
         result = {
             "gene1": gene1,
             "gene2": gene2,
-            "related": related,
-            'similarity_score': similarity_score,
-            "ancestor": ancestor,
-            "descendant": descendant,
-            "path": paths,
-            "shortest_path": shortest_path,
-            'longest_path': longest_path,
-            "explanation": explanation
+            'similarity_score': similarity_analyser.compare2genes(gene1,gene2),
+            "ancestor": gene_analyser.is_gene_ancestor(gene1, gene2),
+            "descendant": gene_analyser.is_gene_descendant(gene1, gene2),
+            "paths": gene_analyser.gene_paths(gene1,gene2),
+            'altpaths': gene_analyser.gene_paths(gene2,gene1),
+            "shortest_path": gene_analyser.shortest_gene_path(gene1, gene2),
+            'longest_path': gene_analyser.longest_gene_path(gene1, gene2),
+            'altshortest_path': gene_analyser.shortest_gene_path(gene2,gene1),
+            'altlongest_path':gene_analyser.longest_gene_path(gene2,gene1),
+            'msca': gene_analyser.MSCA(gene1,gene2)
         }
 
-    return render_template("analyse_genes.html", result=result)
+    return render_template("analyse_genes.html", result=result, gene1=result['gene1'] if result else None, gene2=result['gene2'] if result else None)
 
-@app.route('/statistics')
-def statistics():
-    return render_template('statistics.html', **template_data)
-    
-
+@app.route('/stats')
+def stats(): 
+    return 'Hello for now'
 
 
+
+if __name__ == '__main__':
+    app.run(debug=True, use_reloader=False)
