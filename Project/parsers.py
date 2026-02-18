@@ -100,6 +100,7 @@ class GAFParser(FileParser):
                 rows.append({
                     "gene_id": fields[1],
                     "gene_name": fields[2],
+                    'qualifier':fields[3],
                     "go_id": fields[4],
                     'aspect': fields [8],
                     "evidence": fields[6],
@@ -107,3 +108,4 @@ class GAFParser(FileParser):
                 })
 
         return pd.DataFrame(rows)
+
