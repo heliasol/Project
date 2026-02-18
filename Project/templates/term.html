@@ -3,72 +3,118 @@
 <head>
     <meta charset="utf-8">
     <title>GO Term Page</title>
+    <meta charset="utf-8">
+    <title>GO Term Page</title>
+
     <style>
         body {
-            font-family: 'Trebuchet MS', Tahoma, sans-serif;
-            background-color: #fafafa;
+            font-family: Arial, sans-serif;
+            background-color: cornsilk;
             margin: 0;
             padding: 0;
-            color: #222;
+            color: #333;
         }
+
+        .container {
+            width: 90%;
+            max-width: 750px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: #fff8dc;
+            border: 2px solid #f0e68c;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        h2, h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+        }
+
+        .section-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+            margin-top: 25px;
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
         input[type="text"] {
             padding: 6px 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
             width: 200px;
             margin-right: 10px;
-         }
-
-    button {
-        padding: 6px 12px;
-        border: none;
-        background-color: #007bff;
-        color: #fff;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    button:hover {
-        background-color: #0056b3;
-    }
-
-        .container {
-            width: 90%;
-            max-width: 750px;
-            margin: 40px auto;
-            padding: 25px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
         }
 
-        h1, h2, h3 {
-            color: #111;
-            margin-top: 0;
+        button {
+            padding: 6px 12px;
+            border: none;
+            background-color: indianred;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid #b22222;
+            transition: all 0.3s ease;
         }
 
-        p, li {
-            line-height: 1.5;
-            margin-bottom: 12px;
+        button:hover {
+            background-color: #cd5c5c;
+            transform: translateY(-2px);
         }
 
         ul {
-            padding-left: 18px;
+            padding-left: 20px;
         }
 
-        code {
-            font-family: 'Courier New', monospace;
-            background-color: #f4f4f4;
-            padding: 3px 5px;
-            border-radius: 3px;
+        li {
+            margin-bottom: 8px;
         }
+
         a {
-           color: #007bff;
-           text-decoration: none;
-          }
+            color: indianred;
+            text-decoration: none;
+            font-weight: bold;
+        }
 
+        a:hover {
+            color: #cd5c5c;
+        }
+
+        .center-text {
+            text-align: center;
+        }
     </style>
+
 </head>
 <body>
     <div class="container">
