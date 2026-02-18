@@ -3,109 +3,127 @@
 <head>
     <meta charset="utf-8">
     <title>Simple Gene page</title>
-<style>
-    /* General body styles */
-    body {
-        font-family: 'Trebuchet MS', Tahoma, sans-serif;
-        background-color: #fafafa;
-        margin: 0;
-        padding: 0;
-        color: #222;
-    }
+<head>
+    <meta charset="utf-8">
+    <title>Simple Gene Page</title>
 
-    /* Page container simulation */
-    h1, h2, p, form, table {
-        width: 90%;
-        max-width: 750px;
-        margin: 20px auto;
-    }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: cornsilk;
+            color: #333;
+        }
 
-    h1 {
-        margin-top: 30px;
-        color: #111;
-    }
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.2em;
+            color: #2c3e50;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
 
-    h2 {
-        margin-top: 30px;
-        color: #111;
-    }
+        h2, h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
 
-    p {
-        line-height: 1.5;
-        margin-bottom: 12px;
-    }
+        .intro {
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+        }
 
-    /* Form styling */
-    form {
-        background-color: #fff;
-        padding: 15px 20px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-    }
+        .section-box {
+            background-color: #fff8dc;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #f0e68c;
+            margin-top: 30px;
+        }
 
-    label {
-        display: inline-block;
-        margin-right: 10px;
-        font-weight: bold;
-    }
+        form {
+            text-align: center;
+            margin-bottom: 40px;
+        }
 
-    input[type="text"] {
-        padding: 6px 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        width: 200px;
-        margin-right: 10px;
-    }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
 
-    button {
-        padding: 6px 12px;
-        border: none;
-        background-color: #007bff;
-        color: #fff;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+        input[type="text"] {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+            margin-right: 10px;
+        }
 
-    button:hover {
-        background-color: #0056b3;
-    }
+        button {
+            padding: 6px 12px;
+            border: none;
+            background-color: indianred;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            border: 2px solid #b22222;
+            transition: all 0.3s ease;
+        }
 
-    /* Table styling */
-    table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-top: 20px;
-        background-color: #fff;
-        border-radius: 6px;
-        overflow: hidden;
-        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-    }
+        button:hover {
+            background-color: #cd5c5c;
+            transform: translateY(-2px);
+        }
 
-    th, td {
-        border: 1px solid #ddd;
-        padding: 10px 12px;
-        text-align: left;
-    }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
 
-    th {
-        background-color: #f4f4f4;
-        font-weight: bold;
-    }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
 
-    tr:nth-child(even) {
-        background-color: #fafafa;
-    }
+        th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
 
-    a {
-        color: #007bff;
-        text-decoration: none;
-    }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
 
-    a:hover {
-        text-decoration: underline;
-    }
-</style>
+        a {
+            color: indianred;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            color: #cd5c5c;
+        }
+
+        .footnote {
+            margin-top: 25px;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
 </head>
 <body>
     <h1>Gene Ontology Gene Annotation Summary</h1>
