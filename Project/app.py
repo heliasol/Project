@@ -44,6 +44,7 @@ def load_data():
             go_id=row["go_id"],
             aspect=row["aspect"],
             evidence=row["evidence"],
+            qualifier=row['qualifier'],
             molecule=row["molecule"]
         )
         annotations.add_annotation(ann)
@@ -67,7 +68,7 @@ def load_data():
 
     #stat
     print('start summary')
-    summary= SummaryStatistics(obo_df, gaf_df, terms)
+    summary= SummaryStatistics(obo_df, gaf_df, terms).compute
     print('finish summary')
 
     #similarity analysis
@@ -96,29 +97,28 @@ annotations=data['annotations']
 similarity_analyser = data['similarity_analyser']
 ontology_df= data['ontology_df']
 annotation_df= data ['annotation_df']
-
+summary=data['summary']
 
 
     
 #routes
+
 @app.route('/')
 def home():
     return render_template('index.html')
 
 @app.route("/gene")
-def gene_page():
-    gene_name = request.args.get("gene_name")
-
-    gene_annotations = []
-    if gene_name:
-        gene_annotations = annotations.get_by_gene_name(gene_name)
-        print(f"Searching for gene: {gene_name}, found {len(gene_annotations)} annotations")
-
-    return render_template(
-        "gene.html",
-        gene_name=gene_name,
-        annotations=gene_annotations
-    )
+@app.route("/gene") 
+def gene_page(): 
+    gene_name = request.args.get("gene_name") 
+ 
+    gene_annotations = [] 
+    if gene_name: 
+        gene_annotations = annotations.get_by_gene_name(gene_name) 
+        print(f"Searching for gene: {gene_name}, found {len(gene_annotations)} annotations") 
+    gene_spec = None 
+    if gene_name and gene_annotations: 
+        gene_spec = gene_analyser.gene_specificity(gene_name)
 
 
 @app.route("/term")
@@ -181,7 +181,7 @@ def analyse_genes():
         result = {
             "gene1": gene1,
             "gene2": gene2,
-            'similarity_score': similarity_analyser.compare2genes(gene1,gene2),
+            'related': gene_analyser.genes_functionally_related(gene1,gene2),
             "ancestor": gene_analyser.is_gene_ancestor(gene1, gene2),
             "descendant": gene_analyser.is_gene_descendant(gene1, gene2),
             "paths": gene_analyser.gene_paths(gene1,gene2),
@@ -193,12 +193,73 @@ def analyse_genes():
             'msca': gene_analyser.MSCA(gene1,gene2)
         }
 
-    return render_template("analyse_genes.html", result=result, gene1=result['gene1'] if result else None, gene2=result['gene2'] if result else None)
+    return render_template("analyse_genes.html", result=result)
 
 @app.route('/stats')
-def stats(): 
-    return 'Hello for now'
-
+def stats():
+    template_data = {
+    "total_terms": len(data["ontology_df"]),
+    "leaf_perc": data["summary"]["leaf_percentage"],
+    "avg_parents": data["summary"]["avg parents"],
+    "avg_children": data["summary"]["avg children"],
+    "exp_ratio": f"{(data['summary']['experimental vs computational'].get(True,0) / data['summary']['experimental vs computational'].sum() * 100):.1f}%",
+    "ns_bp": data["summary"]["namespace counts"].get("biological_process", 0),
+    "ns_mf": data["summary"]["namespace counts"].get("molecular_function", 0),
+    "ns_cc": data["summary"]["namespace counts"].get("cellular_component", 0),
+    "ev_labels": data["summary"]["evidence counts"].index.tolist(),
+    "ev_values": data["summary"]["evidence counts"].values.tolist(),
+    "exp_count": data["summary"]["experimental vs computational"].get(True, 0),
+    "comp_count": data["summary"]["experimental vs computational"].get(False, 0)
+}
+   
+    min_val = request.args.get('min')
+    max_val = request.args.get('max')
+    
+    similarity_results = None
+    warning = None
+    
+    if min_val and max_val:
+        # Calcola similarità (stesso codice dell'API)
+        try:
+            from analysis import GeneSimilarityAnalysis
+            
+            min_val = float(min_val)
+            max_val = float(max_val)
+            
+            similarity = GeneSimilarityAnalysis(ontology_df, annotation_df)
+            matrix = similarity.compute
+            
+            # Estrai coppie nel range
+            results = []
+            genes = matrix.index.tolist()
+            for i in range(len(genes)):
+                for j in range(i + 1, len(genes)):
+                    sim_val = matrix.iloc[i, j]
+                    if min_val <= sim_val <= max_val:
+                        results.append({
+                            "gene1": genes[i],
+                            "gene2": genes[j],
+                            "similarity": round(sim_val, 3)
+                        })
+            
+            # Ordina e limita a 100
+            results.sort(key=lambda x: x["similarity"], reverse=True)
+            
+            if len(results) > 100:
+                warning = f"Too many results ({len(results)}+). Showing first 100. Reduce range for more precise search."
+                results = results[:100]
+            
+            similarity_results = results
+            
+        except Exception as e:
+            warning = f"Error: {str(e)}"
+    
+    # Passa TUTTI i dati al template (inclusi risultati ricerca)
+    return render_template('stats.html', 
+                          **template_data,
+                          warning=warning,
+                          search_min=min_val,
+                          search_max=max_val)
 
 
 if __name__ == '__main__':
